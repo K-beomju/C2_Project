@@ -11,11 +11,13 @@ public class ProjectInstaller : MonoInstaller
         Debug.Log("ProjectInstaller Init");
         // Services
         Container.BindInterfacesAndSelfTo<AddressableService>().AsSingle();
+        Container.BindInterfacesAndSelfTo<PopupService>().AsSingle();
 
         // BackEnd
         Container.BindInterfacesAndSelfTo<BackEndAuthService>().AsSingle();
 
-        
+
+
         SignalBusInstaller.Install(Container);
     }
 }

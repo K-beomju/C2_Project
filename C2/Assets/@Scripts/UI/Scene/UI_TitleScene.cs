@@ -21,6 +21,8 @@ public class UI_TitleScene : UI_Base
     }
 
     [Inject] private BackEndAuthService _backEndAuthService;
+    [Inject] private PopupService _popupService;
+    [Inject] private SignalBus _signalBus;
 
     private CanvasGroup _loginBtnGroup;
 
@@ -29,6 +31,9 @@ public class UI_TitleScene : UI_Base
         if (base.Init() == false)
             return false;
 
+        _popupService.SetCurrentSceneUI(this);
+        
+         
         Bind<CanvasGroup>(typeof(CanvasGroups));
         BindButtons(typeof(Buttons));
 
@@ -42,7 +47,7 @@ public class UI_TitleScene : UI_Base
     }
 
 
-    private void ActiveLoginButtonGroup(bool success)
+    public void ActiveLoginButtonGroup(bool success)
     {
         _loginBtnGroup.SetCanvasGroupState(success, false);
 
@@ -69,12 +74,8 @@ public class UI_TitleScene : UI_Base
         {
             if(result)
             {
-                Debug.Log($"{loginType} 로그인 성공");
+                _signalBus.Fire(new LoginSuccessSignal());
                 _loginBtnGroup.SetCanvasGroupState(false, false);
-            }
-            else
-            {
-                Debug.Log("로그인 실패");
             }
         });
     }

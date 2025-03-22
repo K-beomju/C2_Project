@@ -13,6 +13,8 @@ public class TitleSceneInstaller : MonoInstaller
         Container.Bind<TitleScene>().FromComponentInHierarchy().AsSingle();
         Container.Bind<UI_TitleScene>().FromComponentInHierarchy().AsSingle();
 
+
+        Container.DeclareSignal<LoginSuccessSignal>();
     }
     
 }
