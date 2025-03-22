@@ -1,10 +1,10 @@
 using UnityEngine;
 
-public class InitBase : MonoBehaviour, IInitailizeable
+public class InitBase : MonoBehaviour
 {
     protected bool _init = false;
 
-    public virtual bool Init()
+    protected virtual bool Init()
     {
         if (_init)
             return false;

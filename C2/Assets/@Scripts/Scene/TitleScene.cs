@@ -1,34 +1,31 @@
+using System.Collections;
+using BackEnd;
+using C2Project.Addressable;
+using C2Project.BackEnd;
 using UnityEngine;
 using Zenject;
 
-public class TitleScene : MonoBehaviour
+public class TitleScene : InitBase
 {
-    [Inject]
-    private BackEndAuthService _backEndAuthService;
-    [Inject]
-    private AddressableService _addressableService;
+    [Inject] private BackEndAuthService _backEndAuthService;
 
-    private void Awake()
+    protected override bool Init()
     {
-        _backEndAuthService.Init();
+        if (base.Init() == false)
+            return false;
+
+
+        return true;
     }
 
-    private async void Start()
+    private IEnumerator Start()
     {
-        await _addressableService.LoadAllPrefabsAsync("Load", (key, count, totalCount) => 
-        {
-            Debug.Log($"[GameManager] Loaded: {key} ({count}/{totalCount})");
-
-            if (count == totalCount)
-            {
-                Debug.Log("[GameManager] All Prefabs Loaded.");
-            }
-        });
-    }
-
-    private void StartProgress()
-    {
+        yield return new WaitForSeconds(1);
         
+        _backEndAuthService.InitBackend()
+           .Then((success) =>
+           {
+               Debug.Log("뒤끝 초기화 성공");
+           });
     }
-
 }
