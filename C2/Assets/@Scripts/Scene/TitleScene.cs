@@ -1,5 +1,6 @@
 using System.Collections;
 using BackEnd;
+using BackEnd.Functions;
 using C2Project.Addressable;
 using C2Project.BackEnd;
 using C2Project.Signals;
@@ -10,6 +11,8 @@ using static Define;
 public class TitleScene : InitBase
 {
     [Inject] private BackEndAuthService _backEndAuthService;
+    [Inject] private BackEndTableSerivce _backEndTableSerivce;
+    [Inject] private BackEndUtilService _backEndUtilService;
 
     [Inject] private AddressableService _addressableService;
 
@@ -37,6 +40,11 @@ public class TitleScene : InitBase
             yield break;
         }
 
+        // if (_backEndUtilService.GetServerStatus() != EServerStatus.Online)
+        // {
+        //     Debug.Log("서버 점검중");
+        //     yield break;
+        // }
 
         var lastLoginType = _backEndAuthService.LoadLastLoginType();
 
@@ -48,25 +56,38 @@ public class TitleScene : InitBase
         }
 
         _backEndAuthService.AuthLogin(lastLoginType)
-       .Then(_ =>
+       .Then((bro) =>
        {
-           Debug.Log($"[TitleScene] 자동 로그인 성공: {lastLoginType}");
            var titleUI = _popupService.SceneUI as UI_TitleScene;
-           titleUI?.ActiveLoginButtonGroup(false);
-           _signalBus.Fire(new LoginSuccessSignal());
+           if (bro)
+           {
+               Debug.Log($"[TitleScene] 자동 로그인 성공: {lastLoginType}");
+               _signalBus.Fire(new LoginSuccessSignal());
+           }
+           else
+           {
+               Debug.LogError($"[TitleScene] 자동 로그인 실패");
+           }
+           titleUI?.ActiveLoginButtonGroup(!bro);
 
-       })
-       .Catch(ex =>
-       {
-           Debug.LogError($"[TitleScene] 자동 로그인 실패: {ex.Message}");
-           var titleUI = _popupService.SceneUI as UI_TitleScene;
-           titleUI?.ActiveLoginButtonGroup(true); // 로그인 버튼 다시 보여주기
        });
     }
 
     private void OnLoginSuccess(LoginSuccessSignal signal)
     {
-        var a = _addressableService.LoadAllPrefabsAsync("Load");
+        _addressableService.LoadAllPrefabsAsync("Load")
+        .Then((success) =>
+        {
+            if (success)
+            {
+                Debug.Log("Addressable Prefabs 로드 성공");
+                _backEndTableSerivce.LoadAllTables();
+            }
+            else
+            {
+                Debug.LogError("Addressable Prefabs 로드 실패");
+            }
+        });
     }
 
 }

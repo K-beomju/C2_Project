@@ -1,9 +1,9 @@
 using C2Project.BackEnd;
 using UnityEngine;
 using Zenject;
-using RSG;
-using static Define;
+using C2Project.Model;
 using C2Project.Signals;
+using static Define;
 
 
 public class UI_TitleScene : UI_Base
@@ -21,6 +21,9 @@ public class UI_TitleScene : UI_Base
     }
 
     [Inject] private BackEndAuthService _backEndAuthService;
+    [Inject] private BackEndTableSerivce _backEndTableSerivce;
+    [Inject] private PlayerModel _playerModel;
+
     [Inject] private PopupService _popupService;
     [Inject] private SignalBus _signalBus;
 
@@ -78,5 +81,21 @@ public class UI_TitleScene : UI_Base
                 _loginBtnGroup.SetCanvasGroupState(false, false);
             }
         });
+    }
+
+    public void OnClickA()
+    {
+        _backEndTableSerivce.AddTransaction(TableNames.player);
+    }
+
+    public void OnClickB()
+    {
+        _backEndTableSerivce.RunTransactionWrite();
+    }
+
+
+      public void OnClickC()
+    {
+        _playerModel.gold += 10;
     }
 }
