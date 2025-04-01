@@ -20,6 +20,14 @@ public static class Define
         Guest
     }
 
+    // 씬 타입
+    public enum EScene
+    {
+        None,
+        TitleScene,
+        MainScene
+    }
+
     public static class TableNames 
     {
         public const string player = "player";

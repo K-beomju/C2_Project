@@ -5,11 +5,14 @@ using Zenject;
 using RSG;
 using C2Project.Signals;
 using static Define;
+using C2Project.Core;
+using System.Collections;
 
 namespace C2Project.BackEnd
 {
     public class BackEndAuthService : IInitializable
     {
+        [Inject] private CoroutineHandler coroutine;
         public ELoginType CurLoginType { get; private set; } = ELoginType.None;
 
 
@@ -20,6 +23,7 @@ namespace C2Project.BackEnd
                 Debug.LogError($"[BackEndAuthService] 초기화 실패: {ex.Message}");
             });
         }
+        
 
         public IPromise<bool> InitBackend()
         {

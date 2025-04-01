@@ -114,7 +114,6 @@ namespace C2Project.BackEnd
                     promise.Reject(new Exception($"[TransactionUpdate] {string.Join(", ", tableNameList)} Transaction Failed"));
                 }
             });
-
             return promise;
         }
 

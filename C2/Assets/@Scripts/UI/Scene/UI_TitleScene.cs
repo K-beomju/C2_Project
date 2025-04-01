@@ -4,14 +4,29 @@ using Zenject;
 using C2Project.Model;
 using C2Project.Signals;
 using static Define;
+using TMPro;
+using UnityEngine.UI;
+using UniRx;
 
 
 public class UI_TitleScene : UI_Base
 {
     public enum CanvasGroups
     {
-        LoginButtonGroup
+        LoginButtonGroup,
+        LoadDataGroup
     }
+
+    public enum Sliders 
+    {
+        LoadSlider
+    }
+
+    public enum Texts 
+    {
+        LoadProgressText
+    }
+
 
     public enum Buttons
     {
@@ -28,6 +43,7 @@ public class UI_TitleScene : UI_Base
     [Inject] private SignalBus _signalBus;
 
     private CanvasGroup _loginBtnGroup;
+    private CanvasGroup _loadDataGroup;
 
     protected override bool Init()
     {
@@ -36,16 +52,22 @@ public class UI_TitleScene : UI_Base
 
         _popupService.SetCurrentSceneUI(this);
         
-         
-        Bind<CanvasGroup>(typeof(CanvasGroups));
+        BindSliders(typeof(Sliders));
+        BindTMPTexts(typeof(Texts));
         BindButtons(typeof(Buttons));
+        Bind<CanvasGroup>(typeof(CanvasGroups));
 
         _loginBtnGroup = Get<CanvasGroup>((int)CanvasGroups.LoginButtonGroup);
+        _loadDataGroup = Get<CanvasGroup>((int)CanvasGroups.LoadDataGroup);
+
         _loginBtnGroup.SetCanvasGroupState(false,false);
+        _loadDataGroup.SetCanvasGroupState(false,false);
 
         GetButton((int)Buttons.Btn_GoogleLogin).onClick.AddListener(() => OnClickLoginButton(ELoginType.Google));
         GetButton((int)Buttons.Btn_AppleLogin).onClick.AddListener(() => OnClickLoginButton(ELoginType.Apple));
         GetButton((int)Buttons.Btn_GuestLogin).onClick.AddListener(() => OnClickLoginButton(ELoginType.Guest));
+
+        _signalBus.Subscribe<LoginSuccessSignal>(() => _loadDataGroup.SetCanvasGroupState(true, false));
         return true;
     }
 
@@ -83,19 +105,10 @@ public class UI_TitleScene : UI_Base
         });
     }
 
-    public void OnClickA()
+    public void BindProgress(float progressValue)
     {
-        _backEndTableSerivce.AddTransaction(TableNames.player);
+        GetSlider((int)Sliders.LoadSlider).value = progressValue;
+        GetTMPText((int)Texts.LoadProgressText).text = $"{progressValue * 100f:0}%";
     }
 
-    public void OnClickB()
-    {
-        _backEndTableSerivce.RunTransactionWrite();
-    }
-
-
-      public void OnClickC()
-    {
-        _playerModel.gold += 10;
-    }
 }

@@ -1,16 +1,29 @@
+using System;
 using UnityEngine;
+using UnityEngine.SceneManagement;
+using static Define;
 
-public class SceneService : MonoBehaviour
+
+namespace C2Project.Core
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    public class SceneService
     {
-        
-    }
+        public void LoadScene(EScene type, bool isAsync = true)
+        {
+            if (isAsync)
+            {
+                SceneManager.LoadSceneAsync(GetSceneName(type));
+            }
+            else
+            {
+                SceneManager.LoadScene(GetSceneName(type));
+            }
+        }
 
-    // Update is called once per frame
-    void Update()
-    {
-        
+        private string GetSceneName(EScene type)
+        {
+            string name = Enum.GetName(typeof(EScene), type);
+            return name;
+        }
     }
 }

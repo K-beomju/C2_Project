@@ -18,14 +18,14 @@ namespace C2Project.Addressable
         /// 특정 라벨을 가진 모든 프리팹을 비동기 로드 후 캐싱
         /// <param name="label">Addressables 라벨</param>
         /// <param name="callback">로드 진행 상황 콜백 (키, 현재 로드된 개수, 총 개수)</param>
-        public IPromise<bool> LoadAllPrefabsAsync(string label)
+        public IPromise LoadAllPrefabsAsync(string label)
         {
-            var promise = new Promise<bool>();
+            var promise = new Promise();
 
             if (_init)
             {
                 Debug.Log("[AddressableService] 프리팹이 이미 초기화되었습니다.");
-                promise.Resolve(true); // 이미 초기화된 경우 성공으로 처리
+                promise.Resolve(); // 이미 초기화된 경우 성공으로 처리
                 return promise;
             }
 
@@ -67,7 +67,7 @@ namespace C2Project.Addressable
                             {
                                 _init = true;
                                 Debug.Log("[AddressableService] 모든 프리팹이 로드 및 캐싱되었습니다.");
-                                promise.Resolve(true); // 전체 작업 성공
+                                promise.Resolve(); // 전체 작업 성공
                             }
                         }
                         else

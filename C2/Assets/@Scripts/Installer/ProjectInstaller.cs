@@ -13,7 +13,7 @@ public class ProjectInstaller : MonoInstaller
         Debug.Log("ProjectInstaller Init");
         // GameObject
         Container.Bind<CoroutineHandler>().FromNewComponentOnNewGameObject().AsSingle();
-        Container.Bind<SendQueueMgr>().FromNewComponentOnNewGameObject().AsSingle();
+        //Container.Bind<SendQueueMgr>().FromNewComponentOnNewGameObject().AsSingle();
 
 
         // Model
@@ -23,6 +23,7 @@ public class ProjectInstaller : MonoInstaller
         // Services
         Container.BindInterfacesAndSelfTo<AddressableService>().AsSingle();
         Container.BindInterfacesAndSelfTo<PopupService>().AsSingle();
+        Container.BindInterfacesAndSelfTo<SceneService>().AsSingle();
 
         // BackEnd
         Container.BindInterfacesAndSelfTo<BackEndAuthService>().AsSingle();
