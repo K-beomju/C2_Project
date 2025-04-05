@@ -1,8 +1,7 @@
 using System;
 using BackEnd;
 using LitJson;
-using UnityEngine;
-using Zenject;
+
 
 namespace C2Project.Model
 {
@@ -11,26 +10,28 @@ namespace C2Project.Model
     public class PlayerModel : IModel
     {
         public int gold;
+        public int dia;
 
-        public DateTime lastLoginTime;
+        
         public PlayerModel() => InitializeData();
         public void InitializeData()
         {
             gold = 10;
+            dia = 0;
         }
 
-        public Param GetParam()
+        public Param ToParam()
         {
-            return new Param()
-            {
-                { "gold", gold }
-            };
+            Param param = new Param();
+            param.Add("gold", gold);
+            param.Add("dia", dia);
+            return param;
         }
 
         public void PasteValues(JsonData json)
         {
             gold = int.Parse(json["gold"].ToString());
-            Debug.Log($"[PlayerModel] PasteValues gold: {gold}");
+            dia = int.Parse(json["dia"].ToString());
         }
     }
 

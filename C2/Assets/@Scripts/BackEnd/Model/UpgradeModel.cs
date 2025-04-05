@@ -7,21 +7,24 @@ namespace C2Project.Model
 {
     public class UpgradeModel : IModel
     {
+        public int atkLevel;
         public UpgradeModel() => InitializeData();
         public void InitializeData()
         {
-           
+            atkLevel = 1;
         }
 
-
-        public Param GetParam()
+        public Param ToParam()
         {
-            return new Param();
+            return new Param()
+            {
+                { "atkLevel", atkLevel }
+            };
         }
 
         public void PasteValues(JsonData json)
         {
-        
+            atkLevel = int.Parse(json["atkLevel"].ToString());
         }
     }
 

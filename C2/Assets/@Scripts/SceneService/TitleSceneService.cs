@@ -88,7 +88,9 @@ public class TitleSceneService : IInitializable
 
         _addressableService.LoadAllPrefabsAsync("Load")
            .Then(() => promise.ReportProgress(0.1f))
-           .Then(() => _backEndTableSerivce.LoadAllTables())
+           .ThenAll(() => _backEndTableSerivce.LoadAllTables())
+           .Then(() => promise.ReportProgress(0.8f))
+           .ThenAll(() => _backEndTableSerivce.InsertTablesIfEmpty())
            .Then(() => promise.ReportProgress(1f))
            .Done(() =>
            {
@@ -103,6 +105,7 @@ public class TitleSceneService : IInitializable
 
     private void LoadMainScene()
     {
+          
         Debug.Log("메인씬으로 갈 준비가 끝남");
         _sceneService.LoadScene(EScene.MainScene);
     }

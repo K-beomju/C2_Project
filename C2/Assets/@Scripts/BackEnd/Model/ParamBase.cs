@@ -4,7 +4,7 @@ using UnityEngine;
 
 public interface IModel
 {
-    Param GetParam();
+    Param ToParam();
 
     void InitializeData();
 

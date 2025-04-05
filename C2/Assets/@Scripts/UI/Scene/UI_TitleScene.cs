@@ -36,9 +36,6 @@ public class UI_TitleScene : UI_Base
     }
 
     [Inject] private BackEndAuthService _backEndAuthService;
-    [Inject] private BackEndTableSerivce _backEndTableSerivce;
-    [Inject] private PlayerModel _playerModel;
-
     [Inject] private PopupService _popupService;
     [Inject] private SignalBus _signalBus;
 

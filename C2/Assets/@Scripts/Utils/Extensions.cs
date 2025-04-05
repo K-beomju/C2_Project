@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public static class Extensions
@@ -16,5 +17,13 @@ public static class Extensions
             canvasGroup.interactable = false;
             canvasGroup.blocksRaycasts = false;
         }
+    }
+
+    public static void AddIfEmpty<TKey, TValue>(this Dictionary<TKey, TValue> dic, TKey key, TValue item)
+    {
+        if (dic.ContainsKey(key))
+            return;
+
+        dic.Add(key, item);
     }
 }
