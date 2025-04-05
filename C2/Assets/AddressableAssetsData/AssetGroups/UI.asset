@@ -15,8 +15,8 @@ MonoBehaviour:
   m_GroupName: UI
   m_GUID: c9812a5995c1b5b4f962e3a3653b65c5
   m_SerializeEntries:
-  - m_GUID: c89668d97aae87e41beafc94ab7b5c7e
-    m_Address: Assets/@Resources/Prefabs/UI_TitleScene.prefab
+  - m_GUID: f54f7c60b1382dd469ab612a733e22bd
+    m_Address: Gun
     m_ReadOnly: 0
     m_SerializedLabels:
     - Load

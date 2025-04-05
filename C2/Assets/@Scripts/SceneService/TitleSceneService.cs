@@ -8,6 +8,7 @@ using Zenject;
 using UniRx;
 using static Define;
 using C2Project.Core;
+using UnityEngine.U2D;
 
 public class TitleSceneService : IInitializable
 {
@@ -86,20 +87,17 @@ public class TitleSceneService : IInitializable
     {
         var promise = new Promise();
 
-        _addressableService.LoadAllPrefabsAsync("Load")
-           .Then(() => promise.ReportProgress(0.1f))
-           .ThenAll(() => _backEndTableSerivce.LoadAllTables())
-           .Then(() => promise.ReportProgress(0.8f))
-           .ThenAll(() => _backEndTableSerivce.InsertTablesIfEmpty())
-           .Then(() => promise.ReportProgress(1f))
-           .Done(() =>
-           {
-               promise.Resolve();
-           }, ex =>
-           {
-               promise.Reject(ex);
-           });
-
+        _addressableService.LoadAllPrefabsAsync<SpriteAtlas>("Load")
+            .Then(() => promise.ReportProgress(0.2f))
+            .Then(() => _addressableService.LoadAllPrefabsAsync<GameObject>("Load"))
+            .ThenAll(() => _backEndTableSerivce.LoadAllTables())
+            .Then(() => promise.ReportProgress(0.8f))
+            .ThenAll(() => _backEndTableSerivce.InsertTablesIfEmpty())
+            .Then(() => promise.ReportProgress(1f))
+            .Done(
+                () => promise.Resolve(),
+                ex => promise.Reject(ex)
+            );
         return promise;
     }
 

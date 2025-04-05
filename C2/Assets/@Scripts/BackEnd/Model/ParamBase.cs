@@ -1,12 +1,25 @@
 using BackEnd;
-using LitJson;
-using UnityEngine;
 
-public interface IModel
+namespace C2Project.Model
 {
-    Param ToParam();
+    public abstract class ParamBase
+    {
+        public abstract Param GetParam();
 
-    void InitializeData();
+        public Param GetParam(params string[] keys)
+        {
+            var allParam = GetParam();
+            var ret = new Param();
 
-    void PasteValues(JsonData json);
+            foreach (var key in keys)
+            {
+                if (!allParam.ContainsKey(key))
+                    continue;
+
+                ret.Add(key, allParam[key]);
+            }
+
+            return ret;
+        }
+    }
 }

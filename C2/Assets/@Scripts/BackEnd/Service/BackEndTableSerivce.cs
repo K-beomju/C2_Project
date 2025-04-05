@@ -8,6 +8,7 @@ using LitJson;
 using System.Linq;
 using C2Project.Model;
 using static Define;
+using C2Project.Utils;
 
 namespace C2Project.BackEnd
 {
@@ -18,14 +19,14 @@ namespace C2Project.BackEnd
 
         private Dictionary<string, string> _myInDateDictionary;
         private List<string> _emptyModelNameList;
-        private Dictionary<string, IModel> _modelDictionary;
+        private Dictionary<string, ParamBase> _modelDictionary;
         private List<TransactionValue> _transactionWriteList;
 
         public void Initialize()
         {
             _emptyModelNameList = new List<string>();
             _myInDateDictionary = new Dictionary<string, string>();
-            _modelDictionary = new Dictionary<string, IModel>
+            _modelDictionary = new Dictionary<string, ParamBase>
             {
                 { TableNames.player, _playerModel },
                // { TableNames.upgrade, _upgradeModel }
@@ -54,7 +55,7 @@ namespace C2Project.BackEnd
         public IEnumerable<IPromise> InsertTablesIfEmpty()
         {
             return _emptyModelNameList
-                .Select(emptyModelName => InsertMyTable(emptyModelName, _modelDictionary[emptyModelName].ToParam()))
+                .Select(emptyModelName => InsertMyTable(emptyModelName, _modelDictionary[emptyModelName].GetParam()))
                 .ToList();
         }
 
@@ -79,7 +80,7 @@ namespace C2Project.BackEnd
             return promise;
         }
         
-        public IPromise LoadMyTableWithPromise(string tableName, IModel model)
+        public IPromise LoadMyTableWithPromise(string tableName, ParamBase model)
         {
             var promise = new Promise();
             SendQueue.Enqueue(Backend.GameData.GetMyData, tableName, new Where(), 1, bro =>
@@ -100,8 +101,8 @@ namespace C2Project.BackEnd
                     else
                     {
                         Debug.Log($"[LoadMyTableWithPromise] {tableName} Load Success");
-                        model.PasteValues(bro.Rows()[0]);
-
+                        
+                        BackEndUtil.SyncWithModel(model, bro.Rows()[0]);
                         var tableInData = bro.GetInDate();
                         _myInDateDictionary.AddIfEmpty(tableName, tableInData);
                     }
@@ -114,8 +115,14 @@ namespace C2Project.BackEnd
 
         public void AddTransaction(string tableName)
         {   
-            if (FindTableInListAndAppend(_transactionWriteList, tableName,  _modelDictionary[tableName].ToParam()) == false)
-            _transactionWriteList.Add(TransactionValue.SetUpdateV2(tableName, _myInDateDictionary[tableName], Backend.UserInDate, _modelDictionary[tableName].ToParam()));
+            if (FindTableInListAndAppend(_transactionWriteList, tableName,  _modelDictionary[tableName].GetParam()) == false)
+            _transactionWriteList.Add(TransactionValue.SetUpdateV2(tableName, _myInDateDictionary[tableName], Backend.UserInDate, _modelDictionary[tableName].GetParam()));
+        }
+
+        public void AddTransaction(string tableName, Param param)
+        {
+            if (FindTableInListAndAppend(_transactionWriteList, tableName, param) == false)
+                _transactionWriteList.Add(TransactionValue.SetUpdateV2(tableName, _myInDateDictionary[tableName], Backend.UserInDate, param));
         }
 
         public IPromise RunTransactionWrite()

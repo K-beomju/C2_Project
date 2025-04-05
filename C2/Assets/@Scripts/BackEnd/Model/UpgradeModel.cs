@@ -5,26 +5,17 @@ using UnityEngine;
 
 namespace C2Project.Model
 {
-    public class UpgradeModel : IModel
+    public class UpgradeModel : ParamBase
     {
         public int atkLevel;
-        public UpgradeModel() => InitializeData();
-        public void InitializeData()
+        public UpgradeModel()
         {
-            atkLevel = 1;
+
         }
 
-        public Param ToParam()
+        public override Param GetParam()
         {
-            return new Param()
-            {
-                { "atkLevel", atkLevel }
-            };
-        }
-
-        public void PasteValues(JsonData json)
-        {
-            atkLevel = int.Parse(json["atkLevel"].ToString());
+            throw new System.NotImplementedException();
         }
     }
 

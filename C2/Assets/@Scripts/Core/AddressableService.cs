@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using RSG;
+using UnityEngine.U2D;
 
 
 namespace C2Project.Addressable
@@ -11,27 +12,20 @@ namespace C2Project.Addressable
     /// Addressables을 활용한 리소스 관리 서비스
     public class AddressableService : IDisposable
     {
-        protected bool _init = false;
 
         private Dictionary<string, GameObject> _prefabCache = new Dictionary<string, GameObject>(); // 프리팹 캐시
+        public Dictionary<string, Sprite> _spriteCache = new Dictionary<string, Sprite>(); // 스프라이트 캐시
 
         /// 특정 라벨을 가진 모든 프리팹을 비동기 로드 후 캐싱
         /// <param name="label">Addressables 라벨</param>
         /// <param name="callback">로드 진행 상황 콜백 (키, 현재 로드된 개수, 총 개수)</param>
-        public IPromise LoadAllPrefabsAsync(string label)
+        public IPromise LoadAllPrefabsAsync<T>(string label)
         {
             var promise = new Promise();
 
-            if (_init)
-            {
-                Debug.Log("[AddressableService] 프리팹이 이미 초기화되었습니다.");
-                promise.Resolve(); // 이미 초기화된 경우 성공으로 처리
-                return promise;
-            }
-
-            // 지정된 라벨을 가진 모든 프리팹의 위치 정보를 로드
-            Addressables.LoadResourceLocationsAsync(label, typeof(GameObject))
-                .Completed += locationHandle =>
+            // 지정된 라벨을 가진 모든 오브젝트의 위치 정보를 로드
+            Addressables.LoadResourceLocationsAsync(label, typeof(T))
+            .Completed += locationHandle =>
             {
                 if (locationHandle.Status != AsyncOperationStatus.Succeeded)
                 {
@@ -42,32 +36,51 @@ namespace C2Project.Addressable
 
                 int loadCount = 0;
                 int totalCount = locationHandle.Result.Count;
-
                 foreach (var location in locationHandle.Result)
                 {
-                    string cleanKey = GetCleanKey(location.PrimaryKey); // 경로 정리
-
-                    Addressables.LoadAssetAsync<GameObject>(location.PrimaryKey)
+                    string cleanKey = GetCleanKey(location.PrimaryKey); // 경로 정리              
+                    Addressables.LoadAssetAsync<T>(location.PrimaryKey)
                         .Completed += prefabHandle =>
                     {
                         if (prefabHandle.Status == AsyncOperationStatus.Succeeded)
                         {
-                            if (location.PrimaryKey.Contains(".sprite"))
+                            var type = prefabHandle.Result;
+                            if(type is GameObject gameObject)
                             {
-                                // 스프라이트는 따로 예외처리
+                                _prefabCache[cleanKey] = gameObject; // 정리된 키로 저장
+                                loadCount++;
+
+                            }
+                            else if(type is SpriteAtlas spriteAtlas)
+                            {
+                                Sprite[] sprites = new Sprite[spriteAtlas.spriteCount];
+                                spriteAtlas.GetSprites(sprites); // 스프라이트 배열로 가져오기
+                                foreach (var sprite in sprites)
+                                {
+                                    if(sprite != null)
+                                    {
+                                        string cleanName = sprite.name.Split('_')[0].Replace("(Clone)", "").Trim();
+                                        _spriteCache[cleanName] = sprite; // 스프라이트 캐시
+                                    }
+                                    
+                                }
+                                loadCount++;
+
                             }
                             else
                             {
-                                _prefabCache[cleanKey] = prefabHandle.Result; // 정리된 키로 저장
-                                loadCount++;
+                                Debug.LogError($"[AddressableService] 잘못된 타입: {type.GetType()}");
                             }
 
                             // 모든 작업이 완료되었는지 확인
                             if (loadCount == totalCount)
                             {
-                                _init = true;
                                 Debug.Log("[AddressableService] 모든 프리팹이 로드 및 캐싱되었습니다.");
                                 promise.Resolve(); // 전체 작업 성공
+                            }
+                            else
+                            {
+                                promise.ReportProgress((float)loadCount / totalCount); // 진행 상황 보고
                             }
                         }
                         else
@@ -81,6 +94,7 @@ namespace C2Project.Addressable
 
             return promise;
         }
+
 
 
         /// 로드된 프리팹을 캐싱된 딕셔너리에서 가져오기
@@ -115,7 +129,6 @@ namespace C2Project.Addressable
                 Addressables.Release(_prefabCache[key]);
 
             _prefabCache.Clear();
-            _init = false;
             Debug.Log("[AddressableService] 모든 캐싱된 프리팹이 해제되었습니다.");
         }
 

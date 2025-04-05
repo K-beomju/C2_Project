@@ -247,6 +247,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: UI_TitleScene
       objectReference: {fileID: 0}
+    - target: {fileID: 7901026776767624876, guid: c89668d97aae87e41beafc94ab7b5c7e, type: 3}
+      propertyPath: atlas
+      value: 
+      objectReference: {fileID: 100100200, guid: f54f7c60b1382dd469ab612a733e22bd, type: 3}
     - target: {fileID: 7913923443876463941, guid: c89668d97aae87e41beafc94ab7b5c7e, type: 3}
       propertyPath: m_Pivot.x
       value: 0
