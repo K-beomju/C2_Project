@@ -1,12 +1,10 @@
 using C2Project.BackEnd;
 using UnityEngine;
 using Zenject;
-using C2Project.Model;
 using C2Project.Signals;
+using C2Project.Core;
+using DG.Tweening;
 using static Define;
-using TMPro;
-using UnityEngine.UI;
-using UniRx;
 
 
 public class UI_TitleScene : UI_Base
@@ -56,6 +54,8 @@ public class UI_TitleScene : UI_Base
 
         _loginBtnGroup = Get<CanvasGroup>((int)CanvasGroups.LoginButtonGroup);
         _loadDataGroup = Get<CanvasGroup>((int)CanvasGroups.LoadDataGroup);
+        GetSlider((int)Sliders.LoadSlider).value = 0;
+        GetTMPText((int)Texts.LoadProgressText).text = "0%";
 
         _loginBtnGroup.SetCanvasGroupState(false,false);
         _loadDataGroup.SetCanvasGroupState(false,false);
@@ -104,7 +104,7 @@ public class UI_TitleScene : UI_Base
 
     public void BindProgress(float progressValue)
     {
-        GetSlider((int)Sliders.LoadSlider).value = progressValue;
+        GetSlider((int)Sliders.LoadSlider).DOValue(progressValue, 0.2f);
         GetTMPText((int)Texts.LoadProgressText).text = $"{progressValue * 100f:0}%";
     }
 

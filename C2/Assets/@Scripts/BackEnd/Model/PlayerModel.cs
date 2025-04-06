@@ -14,14 +14,15 @@ namespace C2Project.Model
         public const string level = "level";
     }
 
-    [Serializable]
-    public class PlayerModel : ParamBase
+    public partial class PlayerModel
     {
         public int gold;
         public int dia;
-
         public int level;
-        
+    }
+
+    public partial class PlayerModel : ParamBase
+    {
         public PlayerModel()
         {
             gold = 10;
@@ -38,7 +39,6 @@ namespace C2Project.Model
             };
             return param;
         }
-
     }
 
 }

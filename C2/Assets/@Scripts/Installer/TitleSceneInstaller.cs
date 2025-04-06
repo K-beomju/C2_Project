@@ -10,10 +10,10 @@ public class TitleSceneInstaller : MonoInstaller
         Debug.Log("TitleSceneInstaller Init");
 
         // View
-        Container.BindInterfacesAndSelfTo<TitleSceneService>().AsSingle();
         Container.Bind<UI_TitleScene>().FromComponentInHierarchy().AsSingle();
 
 
+        Container.BindInterfacesAndSelfTo<TitleSceneService>().AsSingle();
         Container.DeclareSignal<LoginSuccessSignal>();
     }
     

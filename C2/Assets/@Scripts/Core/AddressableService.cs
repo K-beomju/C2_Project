@@ -5,6 +5,8 @@ using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using RSG;
 using UnityEngine.U2D;
+using Zenject;
+using C2Project.Core;
 
 
 namespace C2Project.Addressable
@@ -12,10 +14,12 @@ namespace C2Project.Addressable
     /// Addressables을 활용한 리소스 관리 서비스
     public class AddressableService : IDisposable
     {
-
+        [Inject] private SpriteLoader _spriteLoader;
+        [Inject] private ResourceLoader _resourceLoader;
         private Dictionary<string, GameObject> _prefabCache = new Dictionary<string, GameObject>(); // 프리팹 캐시
-        public Dictionary<string, Sprite> _spriteCache = new Dictionary<string, Sprite>(); // 스프라이트 캐시
 
+
+        #region Load Reource
         /// 특정 라벨을 가진 모든 프리팹을 비동기 로드 후 캐싱
         /// <param name="label">Addressables 라벨</param>
         /// <param name="callback">로드 진행 상황 콜백 (키, 현재 로드된 개수, 총 개수)</param>
@@ -36,6 +40,8 @@ namespace C2Project.Addressable
 
                 int loadCount = 0;
                 int totalCount = locationHandle.Result.Count;
+
+                
                 foreach (var location in locationHandle.Result)
                 {
                     string cleanKey = GetCleanKey(location.PrimaryKey); // 경로 정리              
@@ -45,32 +51,22 @@ namespace C2Project.Addressable
                         if (prefabHandle.Status == AsyncOperationStatus.Succeeded)
                         {
                             var type = prefabHandle.Result;
-                            if(type is GameObject gameObject)
+                            if (type is GameObject gameObject)
                             {
-                                _prefabCache[cleanKey] = gameObject; // 정리된 키로 저장
-                                loadCount++;
-
+                                LoadGameObject(cleanKey, gameObject, ref loadCount); // 프리팹 로드
                             }
-                            else if(type is SpriteAtlas spriteAtlas)
+                            else if (type is SpriteAtlas spriteAtlas)
                             {
-                                Sprite[] sprites = new Sprite[spriteAtlas.spriteCount];
-                                spriteAtlas.GetSprites(sprites); // 스프라이트 배열로 가져오기
-                                foreach (var sprite in sprites)
-                                {
-                                    if(sprite != null)
-                                    {
-                                        string cleanName = sprite.name.Split('_')[0].Replace("(Clone)", "").Trim();
-                                        _spriteCache[cleanName] = sprite; // 스프라이트 캐시
-                                    }
-                                    
-                                }
-                                loadCount++;
-
+                                LoadSpriteAtlas(spriteAtlas, ref loadCount); // 스프라이트 아틀라스 로드
                             }
                             else
                             {
                                 Debug.LogError($"[AddressableService] 잘못된 타입: {type.GetType()}");
                             }
+
+
+
+
 
                             // 모든 작업이 완료되었는지 확인
                             if (loadCount == totalCount)
@@ -95,42 +91,42 @@ namespace C2Project.Addressable
             return promise;
         }
 
-
-
-        /// 로드된 프리팹을 캐싱된 딕셔너리에서 가져오기
-        public GameObject GetPrefab(string key)
+        private void LoadGameObject(string name, GameObject gameObject, ref int loadCount)
         {
-            if (_prefabCache.TryGetValue(key, out var prefab))
+            if(gameObject == null) 
             {
-                return prefab;
+                Debug.LogError($"[AddressableService] 로드된 프리팹이 null입니다: {name}");
+                return;
             }
 
-            Debug.LogError($"[AddressableService] 캐싱된 프리팹을 찾을 수 없음: {key}");
-            return null;
+            _resourceLoader.AddGameObject(name, gameObject);
+            loadCount++;
         }
 
-        /// Addressables에서 로드된 프리팹을 인스턴스화 (풀링 적용 가능)
-        public GameObject Instantiate(string key, Transform parent = null, bool usePooling = false)
+        private void LoadSpriteAtlas(SpriteAtlas spriteAtlas, ref int loadCount)
         {
-            GameObject prefab = GetPrefab(key);
-            if (prefab == null) return null;
+            if (spriteAtlas == null)
+            {
+                Debug.LogError($"[AddressableService] 로드된 스프라이트 아틀라스가 null입니다.");
+                return;
+            }
 
-            // 오브젝트 풀링을 사용할 경우 풀에서 가져오기 (현재 주석 처리됨)
-            // if (usePooling)
-            //     return ObjectPool.Instance.Pop(prefab);
 
-            return GameObject.Instantiate(prefab, parent);
+            Sprite[] sprites = new Sprite[spriteAtlas.spriteCount];
+            spriteAtlas.GetSprites(sprites); // 스프라이트 배열로 가져오기
+            foreach (var sprite in sprites)
+            {
+                if (sprite != null)
+                {
+                    string cleanName = sprite.name.Split('_')[0].Replace("(Clone)", "").Trim();
+                    _spriteLoader.AddSprite(cleanName, sprite); 
+                }
+
+            }
+            loadCount++;
         }
 
-        /// Addressables 리소스를 해제하여 메모리 정리
-        private void ReleaseAll()
-        {
-            foreach (var key in _prefabCache.Keys)
-                Addressables.Release(_prefabCache[key]);
-
-            _prefabCache.Clear();
-            Debug.Log("[AddressableService] 모든 캐싱된 프리팹이 해제되었습니다.");
-        }
+        #endregion
 
         /// Addressables의 Primary Key에서 불필요한 경로 제거하여 프리팹 이름만 반환
         private string GetCleanKey(string fullPath)
@@ -140,7 +136,9 @@ namespace C2Project.Addressable
 
         public void Dispose()
         {
-            ReleaseAll();
+            foreach (var key in _prefabCache.Keys)
+                Addressables.Release(_prefabCache[key]);
+
         }
     }
 }

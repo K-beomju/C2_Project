@@ -1,4 +1,5 @@
 using System;
+using UniRx;
 using UnityEngine;
 
 public static class Util
@@ -45,6 +46,11 @@ public static class Util
     public static T ParseEnum<T>(string value)
     {
         return (T)Enum.Parse(typeof(T), value, true);
+    }
+
+    public static IObservable<Unit> DelayUnit(float seconds)
+    {
+        return Observable.Timer(TimeSpan.FromSeconds(seconds)).AsUnitObservable();
     }
 
 }

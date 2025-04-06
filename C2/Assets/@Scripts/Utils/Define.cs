@@ -27,11 +27,23 @@ public static class Define
         TitleScene,
         MainScene
     }
+    public enum EGradeType
+    {
+        None,
+        Normal,
+        Rare,
+        Epic,
+        Legendary
+    }
 
     public static class TableNames 
     {
         public const string player = "player";
+
+        public const string weapon = "weapon";
         
         public const string upgrade = "upgrade"; 
+
+
     }
 }

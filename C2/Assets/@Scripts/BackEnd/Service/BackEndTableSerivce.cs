@@ -15,7 +15,7 @@ namespace C2Project.BackEnd
     public class BackEndTableSerivce : IInitializable, IDisposable
     {
         [Inject] private PlayerModel _playerModel;
-        [Inject] private UpgradeModel _upgradeModel;
+        [Inject] private WeaponModel _weaponModel;
 
         private Dictionary<string, string> _myInDateDictionary;
         private List<string> _emptyModelNameList;
@@ -29,7 +29,7 @@ namespace C2Project.BackEnd
             _modelDictionary = new Dictionary<string, ParamBase>
             {
                 { TableNames.player, _playerModel },
-               // { TableNames.upgrade, _upgradeModel }
+                { TableNames.weapon, _weaponModel }
             };
 
             _transactionWriteList = new List<TransactionValue>();
@@ -48,12 +48,14 @@ namespace C2Project.BackEnd
             return new List<IPromise>
             {
                 LoadMyTableWithPromise(TableNames.player, _playerModel),
-                //LoadMyTableWithPromise(TableNames.upgrade, _upgradeModel),
+                LoadMyTableWithPromise(TableNames.weapon, _weaponModel),
             };
         }
 
         public IEnumerable<IPromise> InsertTablesIfEmpty()
         {
+            Debug.Log($"_emptyModelNameList Count: {_emptyModelNameList.Count}");
+
             return _emptyModelNameList
                 .Select(emptyModelName => InsertMyTable(emptyModelName, _modelDictionary[emptyModelName].GetParam()))
                 .ToList();
@@ -62,6 +64,8 @@ namespace C2Project.BackEnd
         private IPromise InsertMyTable(string tableName, Param param) 
         {
             var promise = new Promise();
+
+            Debug.Log($"[InsertMyTable] {tableName} Insert Start");
 
             SendQueue.Enqueue(Backend.GameData.Insert, tableName, param, bro =>
             {

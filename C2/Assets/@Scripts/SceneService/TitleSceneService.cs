@@ -9,12 +9,14 @@ using UniRx;
 using static Define;
 using C2Project.Core;
 using UnityEngine.U2D;
+using System.Collections.Generic;
+using System;
 
 public class TitleSceneService : IInitializable
 {
     [Inject] private BackEndAuthService _backEndAuthService;
     [Inject] private BackEndTableSerivce _backEndTableSerivce;
-    [Inject] private BackEndUtilService _backEndUtilService;
+    [Inject] private BackEndChartService _backEndChartService;
     [Inject] private AddressableService _addressableService;
     [Inject] private SceneService _sceneService;
 
@@ -30,7 +32,7 @@ public class TitleSceneService : IInitializable
     private void InitializeScene()
     {
         // UniRx의 Observable.Timer를 사용하여 1초 대기
-        Observable.Timer(System.TimeSpan.FromSeconds(1))
+        Util.DelayUnit(1)
             .Subscribe(_ =>
             {
                 if (!Backend.IsInitialized)
@@ -80,30 +82,75 @@ public class TitleSceneService : IInitializable
                 .Progress(v => _titleSceneUI.BindProgress(v))
                 .Done(() =>
                 {
-                    LoadMainScene();
+                    Util.DelayUnit(1)
+                        .Subscribe(_ =>
+                        {
+                            Debug.Log("로딩 완료");
+                            LoadMainScene();
+                        });
                 });
     }
+
+    private List<Func<IPromise>> DefineTasks()
+    {
+        return new List<Func<IPromise>>
+        {
+            () => _addressableService.LoadAllPrefabsAsync<SpriteAtlas>("Load"),
+            () => _addressableService.LoadAllPrefabsAsync<GameObject>("Load"),
+            () => Promise.All(_backEndChartService.LoadAllCharts()),
+            () => Promise.All(_backEndTableSerivce.LoadAllTables()),
+            () => Promise.All(_backEndTableSerivce.InsertTablesIfEmpty())
+        };;
+    }
+
     private IPromise PlayDataLoadProgress()
     {
         var promise = new Promise();
 
-        _addressableService.LoadAllPrefabsAsync<SpriteAtlas>("Load")
-            .Then(() => promise.ReportProgress(0.2f))
-            .Then(() => _addressableService.LoadAllPrefabsAsync<GameObject>("Load"))
-            .ThenAll(() => _backEndTableSerivce.LoadAllTables())
-            .Then(() => promise.ReportProgress(0.8f))
-            .ThenAll(() => _backEndTableSerivce.InsertTablesIfEmpty())
-            .Then(() => promise.ReportProgress(1f))
-            .Done(
-                () => promise.Resolve(),
-                ex => promise.Reject(ex)
-            );
+        // 작업 리스트 정의
+        var tasks = DefineTasks();
+        int totalTasks = tasks.Count;
+        int completedTasks = 0;
+
+        // 작업을 순차적으로 실행
+        ExecuteTasksSequentially(tasks, progress =>
+        {
+            completedTasks++;
+            float progressValue = (float)completedTasks / totalTasks;
+            promise.ReportProgress(progressValue);
+        })
+        .Done(() => promise.Resolve(), ex => promise.Reject(ex));
+
+        return promise;
+    }
+
+    private IPromise ExecuteTasksSequentially(List<Func<IPromise>> tasks, Action<float> onProgress)
+    {
+        var promise = new Promise();
+
+        void ExecuteNext(int index)
+        {
+            if (index >= tasks.Count)
+            {
+                promise.Resolve();
+                return;
+            }
+
+            tasks[index]()
+                .Done(() =>
+                {
+                    onProgress?.Invoke((float)(index + 1) / tasks.Count);
+                    ExecuteNext(index + 1);
+                }, ex => promise.Reject(ex));
+        }
+
+        ExecuteNext(0);
         return promise;
     }
 
     private void LoadMainScene()
     {
-          
+
         Debug.Log("메인씬으로 갈 준비가 끝남");
         _sceneService.LoadScene(EScene.MainScene);
     }

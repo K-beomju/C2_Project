@@ -3,25 +3,28 @@ using C2Project.Addressable;
 using UnityEngine;
 using Zenject;
 
-public class PopupService : IInitializable
+namespace C2Project.Core
 {
-    [Inject] private AddressableService _addressableService;
-
-    private UI_Base _sceneUI = null;
-    public UI_Base SceneUI
+    public class PopupService : IInitializable
     {
-        get { return _sceneUI; }
-        set { _sceneUI = value; }
-    }
 
-    public void Initialize()
-    {
-        
-    }
+        private UI_Base _sceneUI = null;
+        public UI_Base SceneUI
+        {
+            get { return _sceneUI; }
+            set { _sceneUI = value; }
+        }
 
-    public void SetCurrentSceneUI(UI_Base sceneUI)
-    {
-        SceneUI = sceneUI;
+        public void Initialize()
+        {
+
+        }
+
+        public void SetCurrentSceneUI(UI_Base sceneUI)
+        {
+            SceneUI = sceneUI;
+        }
+
     }
 
 }
